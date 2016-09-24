@@ -44,6 +44,17 @@ class BlurSuite extends FunSuite {
       s"(boxBlurKernel(0, 4, 1) should be 4, " +
         s"but it's ${boxBlurKernel(src, 0, 0, 2)})")
   }
+    test("boxBlurKernel should return the correct value on a border pixel " +
+        "of a 3x3 image with radius 1") {
+        val src = new Img(3, 3)
+      src(0, 0) = 0; src(1, 0) = 1; src(2, 0) = 2
+      src(0, 1) = 3; src(1, 1) = 4; src(2, 1) = 5
+      src(0, 2) = 6; src(1, 2) = 7; src(2, 2) = 8
+
+      assert(boxBlurKernel(src, 0, 2, 1) === 5,
+        s"(boxBlurKernel(0, 2, 1) should be 5, " +
+          s"but it's ${boxBlurKernel(src, 0, 2, 1)})")
+    }
 
   test("HorizontalBoxBlur.blur with radius 1 should correctly blur the entire 3x3 image") {
     val w = 3
@@ -91,6 +102,16 @@ class BlurSuite extends FunSuite {
     src(0, 1) = 3; src(1, 1) = 4; src(2, 1) = 5
     src(0, 2) = 6; src(1, 2) = 7; src(2, 2) = 8
 
+    /**
+      * 0 1 2
+      * 3 4 5
+      * 6 7 8
+      *
+      * 0 0 0 3
+      * 0 0 0 4
+      * 0 0 0 6
+      * 0 0 0 7
+      */
     HorizontalBoxBlur.parBlur(src, dst, 3, 1)
 
     def check(x: Int, y: Int, expected: Int) =
@@ -103,9 +124,9 @@ class BlurSuite extends FunSuite {
     check(0, 1, 3)
     check(1, 1, 4)
     check(2, 1, 4)
-    check(0, 2, 0)
-    check(1, 2, 0)
-    check(2, 2, 0)
+    check(0, 2, 5)
+    check(1, 2, 5)
+    check(2, 2, 6)
   }
 
   test("HorizontalBoxBlur.parBlur with radius 2 should correctly blur the entire 4x3 image") {

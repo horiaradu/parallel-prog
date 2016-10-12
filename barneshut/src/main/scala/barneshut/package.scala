@@ -70,7 +70,7 @@ package object barneshut {
 
     def total: Int = 0
 
-    def insert(b: Body): Quad = Leaf(centerX, centerY, size, List(b))
+    def insert(b: Body): Quad = Leaf(centerX, centerY, size, Seq(b))
   }
 
   case class Fork(nw: Quad, ne: Quad, sw: Quad, se: Quad) extends Quad {
@@ -91,9 +91,9 @@ package object barneshut {
   }
 
   case class Leaf(centerX: Float, centerY: Float, size: Float, bodies: Seq[Body]) extends Quad {
-    val mass = bodies.map(_.mass).sum
-    val massX = bodies.map(b => b.mass * b.x).sum / mass
-    val massY = bodies.map(b => b.mass * b.y).sum / mass
+    val mass = bodies.foldLeft(0f)(_ + _.mass)
+    val massX = bodies.foldLeft(0f)((acc, b) => acc + b.mass * b.x) / mass
+    val massY = bodies.foldLeft(0f)((acc, b) => acc + b.mass * b.y) / mass
     val total: Int = bodies.size
 
     def insert(b: Body): Quad =
@@ -166,7 +166,12 @@ package object barneshut {
           // see if node is far enough from the body,
           if (quad.size / dist < theta) addForce(quad.mass, quad.massX, quad.massY)
           // or recursion is needed
-          else for (q <- List(nw, ne, sw, se)) traverse(q)
+          else {
+            traverse(nw)
+            traverse(ne)
+            traverse(sw)
+            traverse(se)
+          }
       }
 
       traverse(quad)

@@ -15,7 +15,8 @@ class BarnesHutSuite extends FunSuite {
 
   // test cases for quad tree
 
-import FloatOps._
+  import FloatOps._
+
   test("Empty: center of mass should be the center of the cell") {
     val quad = Empty(51f, 46.3f, 5f)
     assert(quad.massX == 51f, s"${quad.massX} should be 51f")
@@ -69,6 +70,56 @@ import FloatOps._
         assert(centerY == 46.3f, s"$centerY should be 46.3f")
         assert(size == 5f, s"$size should be 5f")
         assert(bodies == Seq(b), s"$bodies should contain only the inserted body")
+      case _ =>
+        fail("Empty.insert() should have returned a Leaf, was $inserted")
+    }
+  }
+
+  test("Leaf.insert(b) should return should return another Leaf if size < minimumSize") {
+    val quad = Leaf(51f, 46.3f, 0.0000001f, List())
+    val b = new Body(3f, 54f, 46f, 0f, 0f)
+    val inserted = quad.insert(b)
+    inserted match {
+      case Leaf(centerX, centerY, size, bodies) =>
+        assert(centerX == 51f, s"$centerX should be 51f")
+        assert(centerY == 46.3f, s"$centerY should be 46.3f")
+        assert(size == 0.0000001f, s"$size should be 5f")
+        assert(bodies == Seq(b), s"$bodies should contain only the inserted body")
+      case _ =>
+        fail("Empty.insert() should have returned a Leaf, was $inserted")
+    }
+  }
+
+  test("Leaf.insert(b) should return a new Fork if size > minimumSize") {
+    val quad = Leaf(1f, 1f, 2f, List())
+    val b = new Body(3f, 0.5f, 0.5f, 0f, 0f)
+    val inserted = quad.insert(b)
+    inserted match {
+      case Fork(nw, ne, sw, se) =>
+        assert(Leaf(0.5f, 0.5f, 1f, List(b)) == nw, s"nw: $nw should equal ${Leaf(0.5f, 0.5f, 1f, List(b))}")
+        assert(Empty(1.5f, 0.5f, 1f) == ne, s"ne: $nw should equal ${Empty(1.5f, 0.5f, 1f)}")
+        assert(Empty(0.5f, 1.5f, 1f) == sw, s"sw: $nw should equal ${Empty(0.5f, 1.5f, 1f)}")
+        assert(Empty(1.5f, 1.5f, 1f) == se, s"se: $nw should equal ${Empty(1.5f, 1.5f, 1f)}")
+      case _ =>
+        fail("Empty.insert() should have returned a Fork, was $inserted")
+    }
+  }
+
+  test("Quad.insert(b) should return should insert in the appropriate quarter") {
+    val quad = Fork(
+      Empty(0.5f, 0.5f, 1f),
+      Empty(1.5f, 0.5f, 1f),
+      Empty(0.5f, 1.5f, 1f),
+      Empty(1.5f, 1.5f, 1f)
+    )
+    val b = new Body(3f, 1.5f, 0.5f, 0f, 0f)
+    val inserted = quad.insert(b)
+    (quad, inserted) match {
+      case (Fork(oNw, oNe, oSw, oSe), Fork(nw, ne, sw, se)) =>
+        assert(oNw == nw, s"nw: $nw should equal $oNw")
+        assert(Leaf(1.5f, 0.5f, 1f, List(b)) == ne, s"ne: $ne should equal ${Leaf(1.5f, 0.5f, 1f, List(b))}")
+        assert(oSw == sw, s"sw: $sw should equal $oSw")
+        assert(oSe == se, s"se: $se should equal $oSe")
       case _ =>
         fail("Empty.insert() should have returned a Leaf, was $inserted")
     }
@@ -137,5 +188,6 @@ object FloatOps {
           abs(a - b) < precisionThreshold
         }
   }
+
 }
 

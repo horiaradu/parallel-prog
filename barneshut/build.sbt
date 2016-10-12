@@ -13,6 +13,8 @@ libraryDependencies ++= assignmentsMap.value.values.flatMap(_.dependencies).toSe
 // include the common dir
 commonSourcePackages += "common"
 
+traceLevel in run := 0
+
 assignmentsMap := {
   val depsCollections = Seq(
     "com.storm-enroute" %% "scalameter-core" % "0.6",

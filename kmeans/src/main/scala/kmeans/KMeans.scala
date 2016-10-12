@@ -76,7 +76,8 @@ class KMeans {
     //
     //      new Point(sumX / total, sumY / total, sumZ / total)
     //    }
-
+    //
+    //    oldMeans.map(findMean)
     oldMeans.map((oldMean) => findAverage(oldMean, classified(oldMean)))
   }
 
